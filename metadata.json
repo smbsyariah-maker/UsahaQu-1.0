@@ -1,0 +1,8 @@
+{
+  "name": "Usaha Qu 1.0",
+  "description": "Aplikasi manajemen operaional masa kini",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
