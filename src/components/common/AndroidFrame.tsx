@@ -38,8 +38,8 @@ export const AndroidFrame: React.FC<AndroidFrameProps> = ({
       <div className="w-full max-w-5xl mb-3 hidden md:flex items-center justify-between px-4 py-2 bg-white shadow-xs rounded-2xl border border-slate-200 text-slate-600 text-xs">
         <div className="flex items-center gap-3">
           <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="font-bold text-slate-900 tracking-wide">Bengkel Qu 1.60</span>
-          <span className="text-slate-400 hidden sm:inline">| UI Flutter / Android Modern</span>
+          <span className="font-bold text-slate-900 tracking-wide">Usaha Qu 1.0</span>
+          <span className="text-slate-400 hidden sm:inline">| UI Flutter / Mobile Modular</span>
         </div>
 
         <div className="flex items-center gap-2">
@@ -85,37 +85,6 @@ export const AndroidFrame: React.FC<AndroidFrameProps> = ({
             : 'max-w-4xl h-[100dvh] md:h-[750px] md:max-h-[88vh] rounded-none md:rounded-2xl shadow-none md:shadow-xl border-0 md:border md:border-slate-200 bg-white overflow-hidden my-auto'
         }`}
       >
-        {/* Android Status Bar (Fixed Top dengan Proteksi Safe Area) */}
-        <div
-          className={`shrink-0 bg-[#008952] text-white px-6 pb-2 flex items-center justify-between text-xs font-semibold select-none border-b border-emerald-600/30 z-30 transition-all ${
-            isSafeAreaEnabled
-              ? 'pt-[max(env(safe-area-inset-top,0px),0.875rem)] md:pt-3'
-              : 'pt-2'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <span>{currentTime}</span>
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-200/80" />
-            <span className="text-[10px] text-emerald-100 font-normal">Bengkel Qu</span>
-          </div>
-
-          {/* Speaker / Camera Notch Mockup jika dalam mode frame HP */}
-          {isMobileMode && isSafeAreaEnabled && (
-            <div className="w-24 h-3.5 bg-black/15 rounded-full flex items-center justify-center">
-              <div className="w-2 h-2 rounded-full bg-black/30 border border-emerald-400/20" />
-            </div>
-          )}
-
-          <div className="flex items-center gap-2 text-white/90">
-            <Signal className="w-3.5 h-3.5" />
-            <Wifi className="w-3.5 h-3.5" />
-            <div className="flex items-center gap-1">
-              <span className="text-[10px] font-bold">98%</span>
-              <BatteryMedium className="w-4 h-4" />
-            </div>
-          </div>
-        </div>
-
         {/* Application Viewport Container */}
         <div className="relative flex-1 flex flex-col bg-slate-50 overflow-hidden">
           {/* Scrollable Viewport - Terisolasi agar konten tidak pernah menembus status bar maupun navigation bar */}

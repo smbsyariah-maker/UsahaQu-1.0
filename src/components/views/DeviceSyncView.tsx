@@ -224,29 +224,33 @@ export const DeviceSyncView: React.FC<DeviceSyncViewProps> = ({
   return (
     <div className="flex-1 bg-slate-50 flex flex-col min-h-screen">
       {/* Top Header */}
-      <div className="bg-[#008952] text-white px-5 pt-4 pb-6 shadow-md">
+      <div className="bg-[#008952] text-white px-4 py-2.5 shadow-sm sticky top-0 z-30">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <button
               onClick={onBack}
               aria-label="Kembali"
-              className="w-10 h-10 rounded-full bg-white/15 active:bg-white/30 flex items-center justify-center transition-colors shadow-sm cursor-pointer"
+              className="w-8 h-8 rounded-full bg-white/15 active:bg-white/30 flex items-center justify-center transition-colors shadow-xs cursor-pointer shrink-0"
             >
-              <ArrowLeft className="w-5 h-5 text-white" />
+              <ArrowLeft className="w-4.5 h-4.5 text-white" />
             </button>
-            <div>
-              <h1 className="text-xl font-bold tracking-tight">Tautkan HP & Sinkron</h1>
-              <p className="text-xs text-emerald-100 font-medium">Multi-Device Slot Pairing & Sync</p>
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center text-white shrink-0">
+                <Smartphone className="w-4 h-4" />
+              </div>
+              <h1 className="text-sm font-bold tracking-tight text-white leading-tight">
+                Tautkan HP & Sinkron
+              </h1>
             </div>
           </div>
 
           <button
             onClick={handleTestSync}
             disabled={syncing}
-            className="bg-white text-[#008952] font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-sm active:scale-95 transition-all cursor-pointer disabled:opacity-70"
+            className="bg-white text-[#008952] font-bold text-xs px-2.5 py-1.5 rounded-lg flex items-center gap-1 shadow-xs active:scale-95 transition-all cursor-pointer disabled:opacity-70"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
-            <span>{syncing ? 'Menyinkronkan...' : 'Uji Sinkron'}</span>
+            <span>{syncing ? 'Sinkron...' : 'Uji Sinkron'}</span>
           </button>
         </div>
 

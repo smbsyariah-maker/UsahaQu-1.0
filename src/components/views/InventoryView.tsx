@@ -21,9 +21,11 @@ import {
   TrendingDown,
   Warehouse,
   History,
-  FileText
+  FileText,
+  Camera
 } from 'lucide-react';
 import { Sparepart, DamagedGood, ProcurementRecord } from '../../types';
+import { CameraAutoCompressor } from '../common/CameraAutoCompressor';
 
 interface InventoryViewProps {
   initialTab?: string;
@@ -165,6 +167,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
   const [inboundRack, setInboundRack] = useState('Rak A-1');
   const [inboundSupplier, setInboundSupplier] = useState('Distributor Resmi Bengkel');
   const [inboundNotes, setInboundNotes] = useState('');
+  const [inboundImage, setInboundImage] = useState<string | null>(null);
   const [isScanningSimulated, setIsScanningSimulated] = useState(false);
 
   // Automatic populate if searched/scanned code matches
@@ -254,6 +257,7 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
     setInboundName('');
     setInboundStockToAdd(10);
     setInboundNotes('');
+    setInboundImage(null);
   };
 
   // --------------------------------------------------------------------------
@@ -651,6 +655,16 @@ export const InventoryView: React.FC<InventoryViewProps> = ({
                       className="w-full bg-transparent border-0 border-b border-slate-300 focus:border-[#008952] focus:ring-0 rounded-none py-1.5 px-0 text-slate-800 font-medium text-xs transition-colors focus:outline-none"
                     />
                   </div>
+                </div>
+
+                {/* Foto Produk dengan Kamera Instant & Auto-Compression */}
+                <div className="pt-1 pb-1">
+                  <CameraAutoCompressor
+                    label="Foto Fisik Suku Cadang (Auto-Compress 600×600)"
+                    placeholder="Ambil Foto Kamera / Pilih File Suku Cadang"
+                    currentImage={inboundImage || undefined}
+                    onImageCaptured={(res) => setInboundImage(res.dataUrl)}
+                  />
                 </div>
 
                 {/* Catatan */}

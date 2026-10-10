@@ -26,6 +26,7 @@ import {
   RetailProduct
 } from '../../types';
 import { IconRenderer } from '../common/IconRenderer';
+import { DynamicLogoUQ } from '../common/DynamicLogoUQ';
 import { BUSINESS_TYPES } from '../../data/mockData';
 
 interface HomeDashboardProps {
@@ -124,19 +125,17 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
   return (
     <div className="flex-1 bg-slate-50 pb-6 flex flex-col">
       {/* ========================================================
-          ZONA 1: HEADER ATAS (Bersih & Kompak)
+          ZONA 1: HEADER ATAS (Bersih, Lega & Ringkas)
           ======================================================== */}
-      <header className="bg-[#008952] text-white px-4 pt-3 pb-5 relative overflow-hidden rounded-b-2xl shadow-sm shrink-0">
-        <div className="relative z-10 flex items-center justify-between">
-          {/* Profile & Business Identity */}
+      <header className="bg-[#008952] text-white px-4 pt-3 pb-3 relative overflow-hidden rounded-b-2xl shadow-sm shrink-0">
+        <div className="relative z-10 flex items-center justify-between gap-3">
+          {/* Master Logo UQ & Business Identity */}
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-white text-[#008952] font-black text-base flex items-center justify-center shadow-xs shrink-0">
-              {getBusinessAvatarText()}
-            </div>
+            <DynamicLogoUQ businessType={businessType} size="sm" />
 
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <h2 className="text-sm font-extrabold tracking-tight truncate leading-tight">
+                <h2 className="text-sm font-extrabold tracking-tight truncate leading-tight text-white">
                   {profile?.workshopName || currentBusinessMeta.name}
                 </h2>
 
@@ -154,71 +153,36 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
               </div>
 
               <div className="flex items-center gap-1 text-[10px] text-emerald-100/90 mt-0.5">
-                <span className="truncate max-w-[180px]">
+                <span className="truncate max-w-[200px]">
                   {profile?.address ? profile.address.split(',')[0] : currentBusinessMeta.tagline}
                 </span>
-                {subscription && (
-                  <span
-                    onClick={onOpenSubscription}
-                    className="ml-1 px-1.5 py-0.2 rounded bg-emerald-900/40 text-emerald-200 font-bold border border-emerald-400/30 text-[9px] cursor-pointer hover:bg-emerald-900/60"
-                  >
-                    {subscription.isSubscribed
-                      ? 'PRO'
-                      : subscription.isTrialActive
-                      ? `Trial ${subscription.trialDaysRemaining}h`
-                      : 'Free'}
-                  </span>
-                )}
               </div>
             </div>
           </div>
 
-          {/* Right Action Icons: Notifications & User Session */}
-          <div className="flex items-center gap-1.5 shrink-0">
-            <button
-              onClick={onOpenNotifications}
-              className="relative w-9 h-9 rounded-xl bg-white/15 hover:bg-white/25 active:scale-95 flex items-center justify-center transition-all shadow-xs cursor-pointer"
-              aria-label="Lihat Notifikasi"
-            >
-              <Bell className="w-4.5 h-4.5 text-white" />
-              {unreadNotifsCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[9px] font-bold w-4.5 h-4.5 rounded-full flex items-center justify-center border-2 border-[#008952] animate-bounce">
-                  {unreadNotifsCount}
-                </span>
-              )}
-            </button>
-
-            {userSession && onLogout && (
+          {/* Right: Badge Status Masa Trial Ringkas & Rapi */}
+          <div className="shrink-0 flex items-center">
+            {subscription && (
               <button
-                onClick={onLogout}
-                title="Keluar / Ganti Akun"
-                className="w-9 h-9 rounded-xl bg-white text-[#008952] font-black text-xs flex items-center justify-center shadow-xs hover:bg-emerald-50 active:scale-95 transition-all cursor-pointer"
+                type="button"
+                onClick={onOpenSubscription}
+                className="px-2.5 py-1 rounded-xl bg-white/20 hover:bg-white/30 active:scale-95 text-white text-[11px] font-bold border border-white/25 shadow-2xs transition-all cursor-pointer flex items-center gap-1"
+                title="Kelola Lisensi & Langganan"
               >
-                {userSession.name.charAt(0)}
+                {subscription.isTrialActive ? (
+                  <>
+                    <Sparkles className="w-3 h-3 text-amber-200 fill-amber-300" />
+                    <span>Trial {subscription.trialDaysRemaining} Hari Aktif</span>
+                  </>
+                ) : subscription.isSubscribed ? (
+                  <span>PRO Aktif</span>
+                ) : (
+                  <span>Mode Free</span>
+                )}
               </button>
             )}
           </div>
         </div>
-
-        {/* Quick Search Bar Adaptif */}
-        <form onSubmit={handleSearchSubmit} className="mt-2.5 relative z-10">
-          <div className="relative flex items-center">
-            <Search className="w-3.5 h-3.5 text-emerald-600 absolute left-3 pointer-events-none" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={getSearchPlaceholder()}
-              className="w-full bg-white text-slate-800 placeholder-slate-400 text-xs font-medium rounded-xl pl-8.5 pr-20 py-2 shadow-xs focus:outline-hidden focus:ring-2 focus:ring-emerald-300 transition-all"
-            />
-            <button
-              type="submit"
-              className="absolute right-1 bg-[#008952] hover:bg-emerald-700 active:scale-95 text-white text-[10px] font-bold px-2 py-1.5 rounded-lg transition-colors cursor-pointer"
-            >
-              {businessType === 'ritel' ? 'Scan' : businessType === 'resto' ? 'Meja' : 'Cari'}
-            </button>
-          </div>
-        </form>
       </header>
 
       {/* ========================================================
@@ -325,41 +289,7 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
           </div>
         </div>
 
-        {/* 2. Trial Countdown Banner */}
-        {subscription && subscription.isTrialActive && (
-          <div className="px-4">
-            <div 
-              onClick={onOpenSubscription}
-              className="bg-amber-50 hover:bg-amber-100/80 border border-amber-300 rounded-2xl p-3 flex items-center justify-between gap-2.5 transition-all cursor-pointer shadow-2xs group"
-            >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
-                  <Sparkles className="w-4 h-4 fill-white" />
-                </div>
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-black text-amber-950">
-                      Masa Trial 10 Hari Aktif
-                    </span>
-                    <span className="px-2 py-0.2 rounded-full bg-amber-400 text-amber-950 font-black text-[9px]">
-                      Sisa {subscription.trialDaysRemaining} Hari
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-amber-800 truncate">
-                    Semua modul kasir, CRM, dan laporan terbuka penuh gratis
-                  </p>
-                </div>
-              </div>
-
-              <div className="shrink-0 flex items-center gap-1 text-[11px] font-black text-amber-900 group-hover:translate-x-0.5 transition-transform">
-                <span>Aktivasi</span>
-                <ChevronRight className="w-3.5 h-3.5 stroke-[2.5]" />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* 3. Grid 6 Modul Adaptif (Ikon Kotak Bersudut Tumpul Rounded-2xl + Nama Menu) */}
+        {/* 2. Grid Modul Adaptif (Ikon Kotak Bersudut Tumpul Rounded-2xl + Nama Menu) */}
         <div className="px-4">
           <div className="flex items-center justify-between mb-2.5">
             <h3 className="text-xs font-bold text-slate-800 tracking-tight">
@@ -534,35 +464,6 @@ export const HomeDashboard: React.FC<HomeDashboardProps> = ({
                   <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-amber-500" /> {occupiedTablesCount} Terisi Tamu</span>
                   <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500" /> {billingTablesCount} Minta Bill</span>
                 </div>
-              </div>
-            </div>
-          )}
-
-          {/* Mode 3: RITEL -> Kasir Cepat Banner Terpusat (Optimal untuk transaksi kilat) */}
-          {businessType === 'ritel' && (
-            <div className="bg-white rounded-2xl p-4 shadow-xs border border-slate-100">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-black">
-                    <ScanBarcode className="w-5 h-5 stroke-[2.2]" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-extrabold text-slate-900 tracking-tight">
-                      Kasir Cepat & Barcode POS
-                    </h3>
-                    <p className="text-[11px] text-slate-500">
-                      Transaksi kilat pencarian produk & scan SKU barang ({retailProducts.length} SKU)
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={onOpenKasirCepatRitel || onNavigateToPOS}
-                  className="bg-[#2563eb] hover:bg-blue-700 active:scale-95 text-white text-xs font-black px-3.5 py-2 rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer"
-                >
-                  <Zap className="w-3.5 h-3.5 fill-white" />
-                  <span>Kasir Cepat</span>
-                  <ChevronRight className="w-4 h-4 stroke-[2.5]" />
-                </button>
               </div>
             </div>
           )}

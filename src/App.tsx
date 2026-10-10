@@ -23,7 +23,10 @@ import {
   INITIAL_VOUCHERS,
   INITIAL_DINING_TABLES,
   INITIAL_FOOD_MENUS,
-  INITIAL_RETAIL_PRODUCTS
+  INITIAL_RETAIL_PRODUCTS,
+  COLLABQU_MODULES,
+  INITIAL_CONSIGNMENT_SUPPLIERS,
+  INITIAL_CONSIGNMENT_PRODUCTS
 } from './data/mockData';
 import { 
   MenuModuleConfig, 
@@ -50,7 +53,9 @@ import {
   BusinessType,
   DiningTable,
   FoodMenuItem,
-  RetailProduct
+  RetailProduct,
+  ConsignmentSupplier,
+  ConsignmentProduct
 } from './types';
 import { 
   getOrCreateDeviceId, 
@@ -82,6 +87,10 @@ import { ReceiptModal } from './components/modals/ReceiptModal';
 import { NotificationDrawer } from './components/modals/NotificationDrawer';
 import { SubscriptionModal } from './components/modals/SubscriptionModal';
 import { PluginSwitcherModal } from './components/common/PluginSwitcherModal';
+import { CustomNavbarModal, DEFAULT_MANAGER_TABS } from './components/modals/CustomNavbarModal';
+import { EtalaseOnlineView } from './components/views/EtalaseOnlineView';
+import { CollabQuView } from './components/views/CollabQuView';
+import { ThemeId, getActiveTheme, APP_THEMES } from './utils/themeManager';
 
 export default function App() {
   // Modular Plugin Architecture State (active_business_type: "bengkel" | "resto" | "ritel")
@@ -89,6 +98,16 @@ export default function App() {
     const saved = localStorage.getItem('usahaqu_business_type');
     return (saved as BusinessType) || 'bengkel';
   });
+
+  // Custom Navbar Tabs Configuration State
+  const [customNavbarTabs, setCustomNavbarTabs] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('uq_custom_navbar_tabs');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return DEFAULT_MANAGER_TABS;
+  });
+  const [isCustomNavbarModalOpen, setIsCustomNavbarModalOpen] = useState(false);
 
   const [diningTables, setDiningTables] = useState<DiningTable[]>(() => {
     const saved = localStorage.getItem('usahaqu_tables');
@@ -103,6 +122,28 @@ export default function App() {
   const [retailProducts, setRetailProducts] = useState<RetailProduct[]>(() => {
     const saved = localStorage.getItem('usahaqu_retail_products');
     return saved ? JSON.parse(saved) : INITIAL_RETAIL_PRODUCTS;
+  });
+
+  // CollabQu (Titip Jual / Konsinyasi) State
+  const [consignmentSuppliers, setConsignmentSuppliers] = useState<ConsignmentSupplier[]>(() => {
+    try {
+      const saved = localStorage.getItem('uq_consignment_suppliers');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return INITIAL_CONSIGNMENT_SUPPLIERS;
+  });
+
+  const [consignmentProducts, setConsignmentProducts] = useState<ConsignmentProduct[]>(() => {
+    try {
+      const saved = localStorage.getItem('uq_consignment_products');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return INITIAL_CONSIGNMENT_PRODUCTS;
+  });
+
+  // 6 Variasi Tema Tampilan State
+  const [activeTheme, setActiveTheme] = useState<ThemeId>(() => {
+    return (localStorage.getItem('uq_theme') as ThemeId) || (localStorage.getItem('bq_theme') as ThemeId) || 'emerald';
   });
 
   const [isPluginSwitcherOpen, setIsPluginSwitcherOpen] = useState(false);
@@ -415,12 +456,66 @@ export default function App() {
     localStorage.setItem('usahaqu_retail_products', JSON.stringify(retailProducts));
   }, [retailProducts]);
 
+  useEffect(() => {
+    localStorage.setItem('uq_consignment_suppliers', JSON.stringify(consignmentSuppliers));
+  }, [consignmentSuppliers]);
+
+  useEffect(() => {
+    localStorage.setItem('uq_consignment_products', JSON.stringify(consignmentProducts));
+  }, [consignmentProducts]);
+
+  useEffect(() => {
+    localStorage.setItem('uq_theme', activeTheme);
+  }, [activeTheme]);
+
+  const handleAddConsignmentSupplier = (newSup: Omit<ConsignmentSupplier, 'id'>) => {
+    const fullSup: ConsignmentSupplier = {
+      ...newSup,
+      id: `supp-${Date.now()}`
+    };
+    setConsignmentSuppliers(prev => [fullSup, ...prev]);
+  };
+
+  const handleAddConsignmentProduct = (newProd: Omit<ConsignmentProduct, 'id'>) => {
+    const fullProd: ConsignmentProduct = {
+      ...newProd,
+      id: `cprod-${Date.now()}`
+    };
+    setConsignmentProducts(prev => [fullProd, ...prev]);
+  };
+
+  const handleApplyTheme = (themeId: ThemeId) => {
+    setActiveTheme(themeId);
+    localStorage.setItem('uq_theme', themeId);
+    localStorage.setItem('bq_theme', themeId);
+  };
+
+  const handleOpenCollabQu = (initialTab: 'toko' | 'stok' | 'laporan' = 'toko') => {
+    setCurrentScreen('feature');
+    setSelectedModule({
+      id: 'collabqu',
+      title: 'Collab Qu',
+      subtitle: 'Titip Jual & Konsinyasi',
+      iconName: 'Handshake',
+      description: 'Manajemen konsinyasi mandiri'
+    });
+    setSelectedSubMenu({
+      id: initialTab === 'stok' ? 'collab-stok' : initialTab === 'laporan' ? 'collab-laporan' : 'collab-toko',
+      title: initialTab === 'stok' ? 'Stok Konsinyasi' : initialTab === 'laporan' ? 'Laporan Konsinyasi' : 'Data Toko Penitip',
+      subtitle: 'Modul Titip Jual',
+      iconName: 'Handshake',
+      targetView: 'collabqu'
+    });
+  };
+
   // Active Modules based on Business Type
   const activeModules: MenuModuleConfig[] = 
     businessType === 'resto' 
       ? RESTO_MODULES 
       : businessType === 'ritel' 
       ? RITEL_MODULES 
+      : businessType === 'collabqu'
+      ? COLLABQU_MODULES
       : MENU_MODULES;
 
   const handleSwitchBusinessType = (type: BusinessType) => {
@@ -607,11 +702,103 @@ export default function App() {
       }
     } else if (tabId === 'setting') {
       handleOpenUniversalMenu('setting');
+    } else if (tabId === 'kasir') {
+      if (businessType === 'ritel') {
+        const ritelMod = activeModules.find((m) => m.id === 'kasir-scan') || {
+          id: 'kasir-scan',
+          title: 'Kasir Cepat',
+          subtitle: 'Scan Barcode',
+          iconName: 'ScanBarcode',
+          description: 'Kasir Cepat Ritel',
+          subMenus: []
+        };
+        setSelectedModule(ritelMod as any);
+        setSelectedSubMenu({
+          id: 'kasir-cepat',
+          title: 'Kasir Cepat Ritel',
+          subtitle: 'Scan Barcode',
+          iconName: 'ScanBarcode',
+          targetView: 'ritel-fast-pos'
+        });
+      } else {
+        const posMod = activeModules.find((m) => m.id === 'kasir') || activeModules[0];
+        setSelectedModule(posMod);
+        setSelectedSubMenu(posMod.subMenus[0]);
+      }
+      setCurrentScreen('feature');
+      setCurrentTab('kasir');
+    } else if (tabId === 'laporan') {
+      const repMod = activeModules.find((m) => m.id === 'laporan') || activeModules[0];
+      setSelectedModule(repMod);
+      setSelectedSubMenu(repMod.subMenus[0]);
+      setCurrentScreen('feature');
+      setCurrentTab('laporan');
+    } else if (tabId === 'stok' || tabId === 'sparepart' || tabId === 'inventory') {
+      const invMod = activeModules.find((m) => m.id === 'sparepart' || m.id === 'katalog-rak' || m.id === 'menu-resto') || activeModules[0];
+      setSelectedModule(invMod);
+      setSelectedSubMenu(invMod.subMenus[0]);
+      setCurrentScreen('feature');
+      setCurrentTab(tabId);
+    } else if (tabId === 'marketing') {
+      const mktMod = activeModules.find((m) => m.id === 'marketing') || activeModules[0];
+      setSelectedModule(mktMod);
+      setSelectedSubMenu({
+        id: 'etalase-online',
+        title: 'Etalase Web & WA',
+        subtitle: 'Katalog QR Cloud',
+        iconName: 'Globe',
+        targetView: 'mkt-etalase'
+      });
+      setCurrentScreen('feature');
+      setCurrentTab('marketing');
+    } else if (tabId === 'pelanggan') {
+      const custMod = activeModules.find((m) => m.id === 'pelanggan') || activeModules[0];
+      setSelectedModule(custMod);
+      setSelectedSubMenu(custMod.subMenus[0]);
+      setCurrentScreen('feature');
+      setCurrentTab('pelanggan');
+    } else if (tabId === 'servis') {
+      const srvMod = activeModules.find((m) => m.id === 'servis') || activeModules[0];
+      setSelectedModule(srvMod);
+      setSelectedSubMenu(srvMod.subMenus[0]);
+      setCurrentScreen('feature');
+      setCurrentTab('servis');
+    } else if (tabId === 'meja-order') {
+      const mejaMod = activeModules.find((m) => m.id === 'meja-order') || {
+        id: 'meja-order',
+        title: 'Denah / Layout Meja',
+        subtitle: 'Dine-In & Takeaway',
+        iconName: 'UtensilsCrossed',
+        subMenus: []
+      };
+      setSelectedModule(mejaMod as any);
+      setSelectedSubMenu({
+        id: 'denah-meja',
+        title: 'Denah Meja',
+        subtitle: 'Monitoring Meja',
+        iconName: 'UtensilsCrossed',
+        targetView: 'resto-table-layout'
+      });
+      setCurrentScreen('feature');
+      setCurrentTab('meja-order');
+    } else if (tabId === 'riwayat') {
+      const posMod = activeModules.find((m) => m.id === 'kasir') || activeModules[0];
+      setSelectedModule(posMod);
+      setSelectedSubMenu({
+        id: 'riwayat-transaksi',
+        title: 'Riwayat Transaksi',
+        subtitle: 'Log Struk',
+        iconName: 'Receipt',
+        targetView: 'pos-history'
+      });
+      setCurrentScreen('feature');
+      setCurrentTab('riwayat');
     } else {
       const targetMod = activeModules.find((m) => m.id === tabId);
       if (targetMod) {
         setSelectedModule(targetMod);
         setCurrentScreen('submenu');
+        setCurrentTab(tabId);
       }
     }
   };
@@ -1131,14 +1318,21 @@ export default function App() {
               businessType={businessType}
             />
           );
-        case 'marketing':
+        case 'marketing': {
+          const initTab = (selectedSubMenu?.id === 'etalase-online' || selectedSubMenu?.targetView === 'mkt-etalase')
+            ? 'etalase-online'
+            : (selectedSubMenu?.id || 'etalase-online');
+
           return (
             <MarketingView
-              initialTab={selectedSubMenu?.id || 'broadcast-wa'}
+              initialTab={initTab}
               customers={customers}
               campaigns={campaigns}
               vouchers={vouchers}
               businessType={businessType}
+              subscription={subscription}
+              profile={profile}
+              onOpenSubscriptionModal={() => setIsSubscriptionModalOpen(true)}
               onBack={handleBack}
               onSendCampaign={(newCmp) => setCampaigns([newCmp, ...campaigns])}
               onAddVoucher={(newVch) => setVouchers([newVch, ...vouchers])}
@@ -1149,6 +1343,7 @@ export default function App() {
               }
             />
           );
+        }
         case 'laporan':
           return (
             <ReportView
@@ -1289,6 +1484,8 @@ export default function App() {
         <LoginScreen
           onLoginSuccess={handleLoginSuccess}
           defaultEmail="smbsyariah@gmail.com"
+          subscription={subscription}
+          businessType={businessType}
         />
       </AndroidFrame>
     );
@@ -1305,6 +1502,9 @@ export default function App() {
           onTabChange={handleBottomTabChange}
           subscription={subscription}
           businessType={businessType}
+          userSession={userSession}
+          customTabIds={customNavbarTabs}
+          onOpenCustomizeNav={() => setIsCustomNavbarModalOpen(true)}
         />
       }
     >
@@ -1319,6 +1519,18 @@ export default function App() {
         onClose={() => setIsPluginSwitcherOpen(false)}
         activeBusinessType={businessType}
         onSelectBusinessType={handleSwitchBusinessType}
+      />
+
+      <CustomNavbarModal
+        isOpen={isCustomNavbarModalOpen}
+        onClose={() => setIsCustomNavbarModalOpen(false)}
+        selectedTabIds={customNavbarTabs}
+        onSaveTabs={(tabs) => {
+          setCustomNavbarTabs(tabs);
+          localStorage.setItem('uq_custom_navbar_tabs', JSON.stringify(tabs));
+        }}
+        subscription={subscription}
+        businessType={businessType}
       />
 
       <NewQueueModal

@@ -213,6 +213,14 @@ export const MENU_MODULES: MenuModuleConfig[] = [
     description: 'Kampanye promosi bengkel, formulir pengiriman broadcast WhatsApp, manajemen voucher diskon, dan log pesan.',
     subMenus: [
       {
+        id: 'etalase-online',
+        title: 'Etalase Web & WA',
+        subtitle: 'Katalog QR Cloud & Pesanan WhatsApp',
+        iconName: 'Globe',
+        badge: 'Cloud QR',
+        targetView: 'mkt-etalase'
+      },
+      {
         id: 'broadcast-wa',
         title: 'Broadcast WhatsApp',
         subtitle: 'Form Draf & Kirim Pesan Promo / Reminder',
@@ -1231,7 +1239,7 @@ export const QUICK_SERVICE_PACKAGES = [
 // ==========================================
 // MODULAR PLUGIN DEFINITIONS (USAHA QU 1.0)
 // ==========================================
-import { BusinessTypeMeta, DiningTable, FoodMenuItem, RetailProduct } from '../types';
+import { BusinessTypeMeta, DiningTable, FoodMenuItem, RetailProduct, ConsignmentSupplier, ConsignmentProduct } from '../types';
 
 export const BUSINESS_TYPES: BusinessTypeMeta[] = [
   {
@@ -1263,6 +1271,16 @@ export const BUSINESS_TYPES: BusinessTypeMeta[] = [
     primaryColor: '#2563eb',
     badgeLabel: 'Mode Ritel & Toko',
     description: 'Kasir kilat scan barcode, penataan rak & lorong barang, serta manajemen grosir/eceran.'
+  },
+  {
+    id: 'collabqu',
+    name: 'Collab Qu',
+    shortName: 'Titip Jual',
+    tagline: 'Konsinyasi, Bagi Hasil & Toko Penitip',
+    iconName: 'Handshake',
+    primaryColor: '#7c3aed',
+    badgeLabel: 'Mode Konsinyasi',
+    description: 'Manajemen barang titip jual, pencatatan toko pemasok, komisi otomatis, dan settlement bagi hasil.'
   }
 ];
 
@@ -1423,6 +1441,14 @@ export const RESTO_MODULES: MenuModuleConfig[] = [
     badgeColor: 'bg-rose-500',
     description: 'Voucher promo makan, paket hemat makan siang, dan broadcast WhatsApp event kuliner.',
     subMenus: [
+      {
+        id: 'etalase-online',
+        title: 'Etalase Menu QR & WA',
+        subtitle: 'Katalog Meja & Pesan WhatsApp',
+        iconName: 'Globe',
+        badge: 'Cloud QR',
+        targetView: 'mkt-etalase'
+      },
       {
         id: 'broadcast-wa',
         title: 'Broadcast Promo WA',
@@ -1614,6 +1640,14 @@ export const RITEL_MODULES: MenuModuleConfig[] = [
     description: 'Manajemen kupon voucher diskon belanja, promo bundle, dan broadcast WhatsApp.',
     subMenus: [
       {
+        id: 'etalase-online',
+        title: 'Etalase Toko Web & WA',
+        subtitle: 'Katalog Produk QR & Pesan WhatsApp',
+        iconName: 'Globe',
+        badge: 'Cloud QR',
+        targetView: 'mkt-etalase'
+      },
+      {
         id: 'broadcast-wa',
         title: 'Broadcast Promo Pelanggan',
         subtitle: 'Kirim Info Diskon Mingguan via WA',
@@ -1651,6 +1685,111 @@ export const RITEL_MODULES: MenuModuleConfig[] = [
         subtitle: 'Ranking Volume Penjualan Barang',
         iconName: 'Star',
         targetView: 'rep-service'
+      }
+    ]
+  }
+];
+
+export const COLLABQU_MODULES: MenuModuleConfig[] = [
+  {
+    id: 'collab-toko',
+    title: 'Data Toko (Penitip)',
+    subtitle: 'Mitra & Pemasok Konsinyasi',
+    iconName: 'Store',
+    badgeCount: '3 Toko',
+    badgeColor: 'bg-purple-600',
+    description: 'Daftar toko pemasok, nama pemilik/kontak WhatsApp, alamat, dan pin Google Maps.',
+    subMenus: [
+      {
+        id: 'toko-list',
+        title: 'Master Toko Penitip',
+        subtitle: 'Data Mitra & Kontak WhatsApp',
+        iconName: 'Store',
+        badge: 'Mitra',
+        targetView: 'collabqu'
+      },
+      {
+        id: 'toko-baru',
+        title: '+ Toko Baru',
+        subtitle: 'Pendaftaran Penitip Konsinyasi',
+        iconName: 'PlusCircle',
+        badge: 'Form',
+        targetView: 'collabqu'
+      }
+    ]
+  },
+  {
+    id: 'collab-stok',
+    title: 'Stok Konsinyasi',
+    subtitle: 'Barang Masuk & Sisa Stok',
+    iconName: 'Package',
+    badgeCount: '4 Item',
+    badgeColor: 'bg-purple-600',
+    description: 'Pencatatan barang titip jual, harga konsumen, harga netto penitip, dan batas tanggal retur.',
+    subMenus: [
+      {
+        id: 'stok-list',
+        title: 'Daftar Barang Titip',
+        subtitle: 'Sisa Stok & Status Retur',
+        iconName: 'Package',
+        targetView: 'collabqu'
+      },
+      {
+        id: 'stok-tambah',
+        title: '+ Tambah Stok Titip',
+        subtitle: 'Input Barang Titip Jual Baru',
+        iconName: 'PlusCircle',
+        targetView: 'collabqu'
+      }
+    ]
+  },
+  {
+    id: 'collab-laporan',
+    title: 'Laporan Konsinyasi',
+    subtitle: 'Bagi Hasil & Settlement',
+    iconName: 'BarChart3',
+    badgeCount: 'Rekap',
+    badgeColor: 'bg-purple-600',
+    description: 'Rekap omset barang titipan, hak bersih yang wajib disetor ke penitip, dan profit komisi toko.',
+    subMenus: [
+      {
+        id: 'laporan-bagi-hasil',
+        title: 'Rekap Dana Bagi Hasil',
+        subtitle: 'Hak Penitip & Profit Toko',
+        iconName: 'DollarSign',
+        targetView: 'collabqu'
+      },
+      {
+        id: 'slip-penyetoran',
+        title: 'Slip & WhatsApp Penitip',
+        subtitle: 'Kirim Laporan via WhatsApp',
+        iconName: 'Share2',
+        targetView: 'collabqu'
+      }
+    ]
+  },
+  {
+    id: 'setting',
+    title: 'Setting',
+    subtitle: 'Pengaturan Tampilan & Sistem',
+    iconName: 'Settings',
+    badgeCount: 'Sistem',
+    badgeColor: 'bg-purple-600',
+    description: 'Pengaturan tema tampilan 6 variasi, backup data, dan manajemen penyimpanan modular.',
+    subMenus: [
+      {
+        id: 'setting-tema',
+        title: 'Pengaturan Tampilan',
+        subtitle: '6 Variasi Tema (Outdoor, OLED, dll)',
+        iconName: 'Palette',
+        targetView: 'setting-theme'
+      },
+      {
+        id: 'setting-storage',
+        title: 'Penyimpanan & Cleaner',
+        subtitle: 'Bersihkan Sampah & Indikator Monolith',
+        iconName: 'HardDrive',
+        targetView: 'setting-storage'
       }
     ]
   }
@@ -1780,5 +1919,124 @@ export const INITIAL_RETAIL_PRODUCTS: RetailProduct[] = [
   { id: 'ret-4', barcode: '8992753210103', sku: 'SNK-001', name: 'Biskuit Gandum Coklat 150g', category: 'Minuman & Snack', rackAisle: 'Lorong B - Rak 3', stock: 42, minStock: 12, buyPrice: 8500, sellPrice: 10500, unit: 'Bks', brand: 'Roma' },
   { id: 'ret-5', barcode: '8993189240019', sku: 'RUM-001', name: 'Sabun Cuci Piring Jeruk Nipis 750ml', category: 'Perlengkapan Rumah', rackAisle: 'Lorong C - Rak 1', stock: 18, minStock: 8, buyPrice: 12000, sellPrice: 14500, unit: 'Btl', brand: 'Sunlight' },
   { id: 'ret-6', barcode: '8994511002341', sku: 'DIR-001', name: 'Sampo Anti Ketombe Menthol 160ml', category: 'Perawatan Diri', rackAisle: 'Lorong C - Rak 2', stock: 15, minStock: 6, buyPrice: 21000, sellPrice: 25000, unit: 'Btl', brand: 'Clear' }
+];
+
+export const INITIAL_CONSIGNMENT_SUPPLIERS: ConsignmentSupplier[] = [
+  {
+    id: 'supp-1',
+    storeName: 'Toko Kue Berkah Ibu',
+    ownerName: 'Ibu Aminah',
+    phone: '081288991122',
+    address: 'Jl. Terusan Pasirkoja No. 45, Bandung',
+    mapsUrl: 'https://maps.google.com/?q=-6.9248,107.5982',
+    joinedDate: '15 Sep 2026',
+    status: 'Aktif',
+    totalSoldUnits: 68,
+    totalSoldRevenue: 1020000,
+    totalReturnedUnits: 4,
+    totalRestockedUnits: 120,
+    activeItemCount: 2
+  },
+  {
+    id: 'supp-2',
+    storeName: 'Kripik Pedas Mak Icih',
+    ownerName: 'Kang Asep Sudrajat',
+    phone: '081399887766',
+    address: 'Gg. Harapan II No. 12, Cimahi',
+    mapsUrl: 'https://maps.google.com/?q=-6.8722,107.5430',
+    joinedDate: '28 Sep 2026',
+    status: 'Aktif',
+    totalSoldUnits: 45,
+    totalSoldRevenue: 900000,
+    totalReturnedUnits: 2,
+    totalRestockedUnits: 80,
+    activeItemCount: 1
+  },
+  {
+    id: 'supp-3',
+    storeName: 'Aksesoris Otomotif Racing',
+    ownerName: 'Mas Bayu Pratama',
+    phone: '085711223344',
+    address: 'Sentra Variasi Otista No. 102, Bandung',
+    mapsUrl: 'https://maps.google.com/?q=-6.9280,107.6045',
+    joinedDate: '02 Okt 2026',
+    status: 'Aktif',
+    totalSoldUnits: 18,
+    totalSoldRevenue: 1350000,
+    totalReturnedUnits: 1,
+    totalRestockedUnits: 30,
+    activeItemCount: 1
+  }
+];
+
+export const INITIAL_CONSIGNMENT_PRODUCTS: ConsignmentProduct[] = [
+  {
+    id: 'cprod-1',
+    supplierId: 'supp-1',
+    supplierName: 'Toko Kue Berkah Ibu',
+    productName: 'Brownies Kukus Lumer Mini',
+    sku: 'CS-BRW-01',
+    consumerPrice: 18000,
+    supplierNetPrice: 14500,
+    commissionRatePercent: 19.4,
+    initialStock: 60,
+    currentStock: 22,
+    soldStock: 36,
+    returnedStock: 2,
+    dueDate: '2026-10-25',
+    status: 'Tersedia',
+    category: 'Kue & Camilan'
+  },
+  {
+    id: 'cprod-2',
+    supplierId: 'supp-2',
+    supplierName: 'Kripik Pedas Mak Icih',
+    productName: 'Kripik Singkong Balado Daun Jeruk',
+    sku: 'CS-KRP-02',
+    consumerPrice: 20000,
+    supplierNetPrice: 16000,
+    commissionRatePercent: 20.0,
+    initialStock: 53,
+    currentStock: 8,
+    soldStock: 45,
+    returnedStock: 0,
+    dueDate: '2026-10-30',
+    status: 'Stok Menipis',
+    category: 'Snack Kering'
+  },
+  {
+    id: 'cprod-3',
+    supplierId: 'supp-3',
+    supplierName: 'Aksesoris Otomotif Racing',
+    productName: 'Phone Holder Motor Aluminium CNC',
+    sku: 'CS-ACC-03',
+    consumerPrice: 75000,
+    supplierNetPrice: 60000,
+    commissionRatePercent: 20.0,
+    initialStock: 30,
+    currentStock: 11,
+    soldStock: 18,
+    returnedStock: 1,
+    dueDate: '2026-11-10',
+    status: 'Tersedia',
+    category: 'Aksesoris'
+  },
+  {
+    id: 'cprod-4',
+    supplierId: 'supp-1',
+    supplierName: 'Toko Kue Berkah Ibu',
+    productName: 'Roti Sisir Butter Keju',
+    sku: 'CS-RTI-04',
+    consumerPrice: 15000,
+    supplierNetPrice: 12000,
+    commissionRatePercent: 20.0,
+    initialStock: 37,
+    currentStock: 3,
+    soldStock: 32,
+    returnedStock: 2,
+    dueDate: '2026-10-12',
+    status: 'Batas Retur',
+    category: 'Roti'
+  }
 ];
 

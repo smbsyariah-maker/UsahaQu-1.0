@@ -26,8 +26,19 @@ import {
   FileCheck,
   X,
   Users,
-  Building2
+  Building2,
+  HardDrive,
+  Camera,
+  CheckCircle2
 } from 'lucide-react';
+import { 
+  getStorageUsageStats, 
+  cleanStorageTrash, 
+  StorageUsageBreakdown,
+  CompressionResult 
+} from '../../utils/imageCompressor';
+import { CameraAutoCompressor } from '../common/CameraAutoCompressor';
+import { APP_THEMES, ThemeId, getActiveTheme } from '../../utils/themeManager';
 import { 
   ServiceQueue, 
   Sparepart, 
@@ -83,6 +94,7 @@ interface SettingViewProps {
   onNavigateToDevices?: () => void;
   businessType?: BusinessType;
   onChangeBusinessType?: (type: BusinessType) => void;
+  onApplyTheme?: (themeId: ThemeId) => void;
 }
 
 export const SettingView: React.FC<SettingViewProps> = ({
@@ -109,14 +121,15 @@ export const SettingView: React.FC<SettingViewProps> = ({
   onReloadDemoData,
   onNavigateToDevices,
   businessType = 'bengkel',
-  onChangeBusinessType
+  onChangeBusinessType,
+  onApplyTheme
 }) => {
 
   const [activeTab, setActiveTab] = useState<string>(initialTab);
 
-  // 1. Theme State
-  const [selectedTheme, setSelectedTheme] = useState<'emerald' | 'teal' | 'forest' | 'lime'>(() => {
-    return (localStorage.getItem('bq_theme') as any) || 'emerald';
+  // 1. Theme State (6 Variasi Tema)
+  const [selectedTheme, setSelectedTheme] = useState<ThemeId>(() => {
+    return (localStorage.getItem('uq_theme') as ThemeId) || (localStorage.getItem('bq_theme') as ThemeId) || 'emerald';
   });
   const [themeSaved, setThemeSaved] = useState(false);
 
@@ -160,37 +173,25 @@ export const SettingView: React.FC<SettingViewProps> = ({
   // 6. Update App State
   const [migrationStatus, setMigrationStatus] = useState<{ checked: boolean; msg: string } | null>(null);
 
-  // Theme Choices
-  const THEMES = [
-    {
-      id: 'emerald',
-      name: 'Hijau Emerald (Standar Bengkel Qu)',
-      desc: 'Warna resmi hijau bersih yang sejuk dan profesional',
-      color: '#008952',
-      badge: 'Aktif'
-    },
-    {
-      id: 'teal',
-      name: 'Teal Mint Modern',
-      desc: 'Nuansa biru-kehijauan cerah ala aplikasi fintech modern',
-      color: '#0d9488',
-      badge: 'Pilihan'
-    },
-    {
-      id: 'forest',
-      name: 'Hijau Forest Solid',
-      desc: 'Warna hijau daun pekat dengan kontras tinggi',
-      color: '#15803d',
-      badge: 'Pilihan'
-    },
-    {
-      id: 'lime',
-      name: 'Lime Racing Otomotif',
-      desc: 'Warna hijau sporty terinspirasi arena balap motor',
-      color: '#65a30d',
-      badge: 'Sporty'
-    }
-  ];
+  // 7. Storage Management & Trash Cleaner State
+  const [storageStats, setStorageStats] = useState<StorageUsageBreakdown>(() => getStorageUsageStats());
+  const [isCleaningStorage, setIsCleaningStorage] = useState(false);
+  const [storageCleanNotice, setStorageCleanNotice] = useState<string | null>(null);
+  const [testCompressionResult, setTestCompressionResult] = useState<CompressionResult | null>(null);
+
+  const handleRunStorageClean = () => {
+    setIsCleaningStorage(true);
+    setTimeout(() => {
+      const result = cleanStorageTrash();
+      setStorageStats(getStorageUsageStats());
+      setIsCleaningStorage(false);
+      setStorageCleanNotice(result.message);
+      setTimeout(() => setStorageCleanNotice(null), 4000);
+    }, 800);
+  };
+
+  // Theme Choices (6 Variasi Tema Tampilan)
+  const THEMES = APP_THEMES;
 
   const DURATION_OPTIONS: {
     months: ProDurationOption;
@@ -233,9 +234,13 @@ export const SettingView: React.FC<SettingViewProps> = ({
     }
   ];
 
-  const handleApplyTheme = (themeId: any) => {
+  const handleApplyTheme = (themeId: ThemeId) => {
     setSelectedTheme(themeId);
+    localStorage.setItem('uq_theme', themeId);
     localStorage.setItem('bq_theme', themeId);
+    if (onApplyTheme) {
+      onApplyTheme(themeId);
+    }
     setThemeSaved(true);
     setTimeout(() => setThemeSaved(false), 2000);
   };
@@ -378,27 +383,27 @@ export const SettingView: React.FC<SettingViewProps> = ({
   return (
     <div className="flex-1 bg-slate-50 flex flex-col">
       {/* Top Header */}
-      <div className="bg-[#008952] text-white px-5 pt-4 pb-5 shadow-md">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={onBack}
-              aria-label="Kembali"
-              className="w-10 h-10 rounded-full bg-white/15 active:bg-white/30 flex items-center justify-center transition-colors shadow-sm cursor-pointer"
-            >
-              <ArrowLeft className="w-5 h-5 text-white" />
-            </button>
-            <div>
-              <h1 className="text-xl font-bold tracking-tight">Setting Bengkel Qu</h1>
-              <p className="text-xs text-emerald-100 font-medium">
-                Tema, Backup, Restore, Reset & Aktivasi Lisensi
-              </p>
+      <div className="bg-[#008952] text-white px-4 py-2.5 shadow-sm sticky top-0 z-30">
+        <div className="flex items-center gap-2.5">
+          <button
+            onClick={onBack}
+            aria-label="Kembali"
+            className="w-8 h-8 rounded-full bg-white/15 active:bg-white/30 flex items-center justify-center transition-colors shadow-xs cursor-pointer shrink-0"
+          >
+            <ArrowLeft className="w-4.5 h-4.5 text-white" />
+          </button>
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center text-white shrink-0">
+              <Sparkles className="w-4 h-4" />
             </div>
+            <h1 className="text-sm font-bold tracking-tight text-white leading-tight">
+              Setting
+            </h1>
           </div>
         </div>
 
         {/* Tab Switcher Horizontal (Scrollable for compact touch) */}
-        <div className="flex items-center gap-1.5 mt-4 bg-emerald-800/50 p-1 rounded-xl text-xs overflow-x-auto scrollbar-none">
+        <div className="flex items-center gap-1.5 mt-2 bg-emerald-800/50 p-1 rounded-xl text-xs overflow-x-auto scrollbar-none">
           <button
             onClick={() => setActiveTab('setting-plugin')}
             className={`flex-1 min-w-[95px] py-1.5 px-2 rounded-lg font-bold transition-all text-center cursor-pointer whitespace-nowrap ${
@@ -409,11 +414,11 @@ export const SettingView: React.FC<SettingViewProps> = ({
           </button>
           <button
             onClick={() => setActiveTab('setting-tema')}
-            className={`flex-1 min-w-[65px] py-1.5 px-2 rounded-lg font-bold transition-all text-center cursor-pointer whitespace-nowrap ${
+            className={`flex-1 min-w-[130px] py-1.5 px-2 rounded-lg font-bold transition-all text-center cursor-pointer whitespace-nowrap ${
               activeTab === 'setting-tema' ? 'bg-white text-[#008952] shadow-xs' : 'text-emerald-100'
             }`}
           >
-            Tema
+            Pengaturan Tampilan
           </button>
           <button
             onClick={() => setActiveTab('setting-backup')}
@@ -454,6 +459,17 @@ export const SettingView: React.FC<SettingViewProps> = ({
             }`}
           >
             Update App
+          </button>
+          <button
+            onClick={() => {
+              setStorageStats(getStorageUsageStats());
+              setActiveTab('setting-storage');
+            }}
+            className={`flex-1 min-w-[95px] py-1.5 px-2 rounded-lg font-bold transition-all text-center cursor-pointer whitespace-nowrap ${
+              activeTab === 'setting-storage' ? 'bg-white text-[#008952] shadow-xs' : 'text-emerald-100'
+            }`}
+          >
+            Penyimpanan
           </button>
           {onNavigateToDevices && (
             <button
@@ -547,17 +563,17 @@ export const SettingView: React.FC<SettingViewProps> = ({
             <div className="bg-white rounded-2xl p-4 shadow-xs border border-slate-100">
               <div className="flex items-center gap-2 mb-1">
                 <Palette className="w-4 h-4 text-[#008952]" />
-                <h3 className="font-bold text-slate-900 text-sm">Pilihan Tema Warna</h3>
+                <h3 className="font-bold text-slate-900 text-sm">Pengaturan Tampilan (6 Variasi Tema)</h3>
               </div>
               <p className="text-xs text-slate-500">
-                Pilih palet nuansa warna antarmuka untuk seluruh dashboard dan tombol Bengkel Qu.
+                Pilih palet tampilan visual antarmuka Usaha Qu 1.0 sesuai kenyamanan mata & kondisi pencahayaan operasional Anda (Outdoor siang, OLED malam, hingga tema bisnis).
               </p>
             </div>
 
             {themeSaved && (
-              <div className="p-3 bg-emerald-100 border border-emerald-300 text-[#008952] rounded-2xl text-xs font-bold flex items-center gap-2">
+              <div className="p-3 bg-emerald-100 border border-emerald-300 text-[#008952] rounded-2xl text-xs font-bold flex items-center gap-2 animate-in fade-in">
                 <Check className="w-4 h-4" />
-                <span>Tema berhasil diterapkan dan disimpan!</span>
+                <span>Tema berhasil diterapkan ke seluruh aplikasi!</span>
               </div>
             )}
 
@@ -572,23 +588,28 @@ export const SettingView: React.FC<SettingViewProps> = ({
                       : 'border-slate-100 hover:border-emerald-200'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 min-w-0 pr-2">
                     <div
-                      className="w-10 h-10 rounded-2xl shadow-sm flex items-center justify-center text-white font-black"
+                      className="w-10 h-10 rounded-2xl shadow-sm flex items-center justify-center text-white font-black shrink-0 border border-white/20"
                       style={{ backgroundColor: t.color }}
                     >
-                      ✓
+                      {selectedTheme === t.id ? '✓' : ''}
                     </div>
-                    <div>
-                      <h4 className="font-bold text-slate-900 text-xs">{t.name}</h4>
-                      <p className="text-[11px] text-slate-400 mt-0.5">{t.desc}</p>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="font-bold text-slate-900 text-xs">{t.name}</h4>
+                        <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-md bg-slate-100 text-slate-600">
+                          {t.badge}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">{t.desc}</p>
                     </div>
                   </div>
 
                   <div className="shrink-0 pl-2">
                     {selectedTheme === t.id ? (
                       <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-[#008952] border border-emerald-200">
-                        Dipakai
+                        Aktif
                       </span>
                     ) : (
                       <span className="text-[10px] text-slate-400 font-medium">Pilih</span>
@@ -1210,6 +1231,175 @@ export const SettingView: React.FC<SettingViewProps> = ({
               <RefreshCw className="w-4 h-4" />
               <span>Sinkronkan & Sesuaikan Skema Data Sekarang</span>
             </button>
+          </div>
+        )}
+
+        {/* ================= TAB 7: PENYIMPANAN & PEMBERSIH SAMPAH (MODULAR MONOLITH ~5 MB) ================= */}
+        {activeTab === 'setting-storage' && (
+          <div className="space-y-3.5 animate-in fade-in">
+            {/* Header Ringkasan */}
+            <div className="bg-white rounded-2xl p-4 shadow-xs border border-slate-100">
+              <div className="flex items-center gap-2 mb-1">
+                <HardDrive className="w-4 h-4 text-[#008952]" />
+                <h3 className="font-bold text-slate-900 text-sm">Penyimpanan Lokal & Arsitektur Monolith ~5 MB</h3>
+              </div>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Usaha Qu 1.0 dirancang dengan arsitektur <strong>Modular Monolith (~5 MB)</strong> super efisien. Seluruh database, katalog, struk transaksi, dan foto terkompresi disimpan di memori internal perangkat Anda.
+              </p>
+            </div>
+
+            {/* Notifikasi Pembersihan Sampah */}
+            {storageCleanNotice && (
+              <div className="p-3 bg-emerald-100 border border-emerald-300 text-[#008952] rounded-2xl text-xs font-bold flex items-center gap-2 animate-in fade-in">
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                <span>{storageCleanNotice}</span>
+              </div>
+            )}
+
+            {/* 1. Indikator Penggunaan Memori Internal */}
+            <div className="bg-white rounded-2xl p-4 shadow-xs border border-slate-100 space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <Database className="w-4 h-4 text-[#008952]" />
+                  <span className="text-xs font-bold text-slate-800">Indikator Memori Internal</span>
+                </div>
+                <span className="text-xs font-black text-[#008952]">
+                  {storageStats.usedPercent}% Digunakan
+                </span>
+              </div>
+
+              {/* Memory Meter Bar */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-500 font-medium">
+                    {(storageStats.totalUsedKb / 1024).toFixed(2)} MB / {(storageStats.totalQuotaKb / 1024).toFixed(1)} MB
+                  </span>
+                  <span className="text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 text-[10px]">
+                    Sisa Lega {((storageStats.totalQuotaKb - storageStats.totalUsedKb) / 1024).toFixed(2)} MB
+                  </span>
+                </div>
+
+                <div className="h-3 bg-slate-100 rounded-full overflow-hidden flex shadow-inner">
+                  {storageStats.items.map((item) => {
+                    const pct = Math.max(1, (item.sizeKb / storageStats.totalQuotaKb) * 100);
+                    return (
+                      <div
+                        key={item.category}
+                        style={{ width: `${pct}%`, backgroundColor: item.color }}
+                        title={`${item.label}: ${item.sizeKb} KB`}
+                        className="h-full transition-all duration-300"
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Rincian Kategori Memori */}
+              <div className="space-y-2 pt-2 border-t border-slate-100">
+                {storageStats.items.map((item) => (
+                  <div key={item.category} className="flex items-center justify-between text-xs py-1">
+                    <div className="flex items-center gap-2 min-w-0 pr-2">
+                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                      <div className="min-w-0">
+                        <span className="font-semibold text-slate-800 block truncate leading-tight">
+                          {item.label}
+                        </span>
+                        <span className="text-[10px] text-slate-400 block truncate">
+                          {item.description}
+                        </span>
+                      </div>
+                    </div>
+                    <span className="font-mono font-bold text-slate-700 shrink-0 text-right">
+                      {item.sizeKb} KB
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 2. Tombol "Bersihkan Sampah" (Auto & Manual Cleaner) */}
+            <div className="bg-amber-50/70 border border-amber-200/80 rounded-2xl p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold">
+                    <Trash2 className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-xs text-amber-950">Pembersih Sampah Otomatis & Manual</h4>
+                    <p className="text-[10px] text-amber-800">
+                      Hapus foto produk terisolasi, cache PDF, dan draft terbengkalai
+                    </p>
+                  </div>
+                </div>
+
+                <span className="text-[11px] font-black px-2 py-0.5 rounded-lg bg-white border border-amber-200 text-amber-900">
+                  {storageStats.trashKb} KB Sampah
+                </span>
+              </div>
+
+              <p className="text-[11px] text-slate-600 leading-relaxed">
+                Membersihkan file sampah tidak akan menghapus data stok barang aktif, pelanggan, maupun riwayat transaksi keuangan Anda.
+              </p>
+
+              <button
+                type="button"
+                disabled={isCleaningStorage || storageStats.trashKb === 0}
+                onClick={handleRunStorageClean}
+                className="w-full bg-[#008952] hover:bg-emerald-700 active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer"
+              >
+                {isCleaningStorage ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>Sedang Membersihkan Sampah Internal...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    <span>
+                      {storageStats.trashKb > 0 ? `Bersihkan Sampah (${storageStats.trashKb} KB)` : 'Sampah Sudah Bersih (0 KB)'}
+                    </span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* 3. Uji Kamera Instant & Auto-Compression (600x600px, 100-200KB) */}
+            <div className="bg-white rounded-2xl p-4 shadow-xs border border-slate-100 space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <Camera className="w-4 h-4 text-[#008952]" />
+                  <span className="text-xs font-bold text-slate-800">Uji Kamera Instant & Auto-Compression</span>
+                </div>
+                <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                  Target 100KB - 200KB
+                </span>
+              </div>
+
+              <p className="text-[11px] text-slate-500 leading-relaxed">
+                Setiap foto produk wajib melewati kompresi dan resize otomatis (maksimal resolusi 600×600 px) sebelum disimpan ke lokal DB agar tidak membebani kapasitas memori:
+              </p>
+
+              <CameraAutoCompressor
+                label="Simulasi Pengambilan Foto Produk"
+                placeholder="Ambil Foto Kamera / Pilih Gambar untuk Uji Kompresi"
+                onImageCaptured={(res) => setTestCompressionResult(res)}
+              />
+
+              {testCompressionResult && (
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1">
+                  <div className="font-bold text-slate-800 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#008952]" />
+                    <span>Hasil Kompresi Berhasil Memenuhi Standar Modular Monolith!</span>
+                  </div>
+                  <div className="text-[11px] text-slate-600 grid grid-cols-2 gap-2 pt-1">
+                    <div>Ukuran Asli: <strong>{testCompressionResult.originalSizeKb} KB</strong></div>
+                    <div>Setelah Kompresi: <strong className="text-[#008952]">{testCompressionResult.compressedSizeKb} KB</strong></div>
+                    <div>Dimensi Gambar: <strong>{testCompressionResult.width} × {testCompressionResult.height} px</strong></div>
+                    <div>Efisiensi Memori: <strong className="text-[#008952]">Hemat {testCompressionResult.compressionRatio}%</strong></div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )}
 

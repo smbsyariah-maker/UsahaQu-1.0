@@ -21,16 +21,20 @@ import {
   ChevronRight, 
   Info, 
   ShieldAlert,
-  Zap
+  Zap,
+  Plus
 } from 'lucide-react';
 import { 
   WorkshopProfile, 
   RolePermissionConfig, 
   BranchItem, 
   SubscriptionState, 
-  BusinessType 
+  BusinessType,
+  StaffMember,
+  UserRole
 } from '../../types';
 import { BUSINESS_TYPES } from '../../data/mockData';
+import { DEFAULT_REGISTERED_STAFF } from '../auth/LoginScreen';
 
 export type TierType = 'basic' | 'core' | 'corporate';
 export type SubModuleTab = 'profil' | 'hak-akses' | 'cabang';
@@ -181,6 +185,43 @@ export const TierAutoModuleManagerView: React.FC<TierAutoModuleManagerViewProps>
     onUpdatePermissions(permItems);
     setIsPermSaved(true);
     setTimeout(() => setIsPermSaved(false), 2000);
+  };
+
+  // Handlers for Staff Management
+  const [staffList, setStaffList] = useState<StaffMember[]>(() => {
+    try {
+      const stored = localStorage.getItem('uq_registered_staff');
+      if (stored) return JSON.parse(stored);
+    } catch (e) {}
+    return DEFAULT_REGISTERED_STAFF;
+  });
+  const [newStaffName, setNewStaffName] = useState('');
+  const [newStaffEmail, setNewStaffEmail] = useState('');
+  const [newStaffRole, setNewStaffRole] = useState<UserRole>('Kasir');
+  const [isAddingStaff, setIsAddingStaff] = useState(false);
+
+  const handleAddStaff = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newStaffEmail.trim() || !newStaffName.trim()) return;
+    const newStaff: StaffMember = {
+      id: `staff-${Date.now()}`,
+      name: newStaffName.trim(),
+      email: newStaffEmail.trim().toLowerCase(),
+      role: newStaffRole,
+      status: 'Aktif'
+    };
+    const updated = [...staffList, newStaff];
+    setStaffList(updated);
+    localStorage.setItem('uq_registered_staff', JSON.stringify(updated));
+    setNewStaffName('');
+    setNewStaffEmail('');
+    setIsAddingStaff(false);
+  };
+
+  const handleDeleteStaff = (id: string) => {
+    const updated = staffList.filter((s) => s.id !== id);
+    setStaffList(updated);
+    localStorage.setItem('uq_registered_staff', JSON.stringify(updated));
   };
 
   // Handlers for 3 Branches
@@ -621,6 +662,123 @@ export const TierAutoModuleManagerView: React.FC<TierAutoModuleManagerViewProps>
                   <Save className="w-4 h-4 stroke-[2.3]" />
                   <span>Simpan Konfigurasi Hak Akses</span>
                 </button>
+              </div>
+            </div>
+
+            {/* Pendaftaran Gmail Staf & Otomasi Peran Google OAuth */}
+            <div className="bg-white rounded-3xl p-4 shadow-xs border border-slate-100 space-y-3">
+              <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                    <UserCheck className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-xs text-slate-900">Daftar Gmail Staf (Auto-Role Google OAuth)</h3>
+                    <p className="text-[10px] text-slate-500">Saat staf login via Gmail, peran otomatis terkunci</p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsAddingStaff(!isAddingStaff)}
+                  className="px-2.5 py-1 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-[#008952] font-bold text-[11px] border border-emerald-200 cursor-pointer flex items-center gap-1 transition-all"
+                >
+                  <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
+                  <span>Daftarkan Staf</span>
+                </button>
+              </div>
+
+              {/* Form Tambah Staf Baru */}
+              {isAddingStaff && (
+                <form onSubmit={handleAddStaff} className="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-2 animate-in fade-in">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <input
+                      type="text"
+                      required
+                      value={newStaffName}
+                      onChange={(e) => setNewStaffName(e.target.value)}
+                      placeholder="Nama Lengkap Staf..."
+                      className="bg-white border border-slate-200 rounded-xl p-2 text-xs font-medium"
+                    />
+                    <input
+                      type="email"
+                      required
+                      value={newStaffEmail}
+                      onChange={(e) => setNewStaffEmail(e.target.value)}
+                      placeholder="alamat.staf@gmail.com..."
+                      className="bg-white border border-slate-200 rounded-xl p-2 text-xs font-mono font-medium"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                      <span>Peran:</span>
+                      <select
+                        value={newStaffRole}
+                        onChange={(e) => setNewStaffRole(e.target.value as UserRole)}
+                        className="bg-white border border-slate-200 rounded-lg px-2 py-1 text-xs font-bold text-slate-800"
+                      >
+                        <option value="Supervisor">Supervisor (SPV)</option>
+                        <option value="Kasir">Kasir</option>
+                        <option value="Mekanik">Mekanik</option>
+                        <option value="Pelayan">Pelayan</option>
+                        <option value="Admin">Admin</option>
+                      </select>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setIsAddingStaff(false)}
+                        className="px-3 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-200 rounded-lg cursor-pointer"
+                      >
+                        Batal
+                      </button>
+                      <button
+                        type="submit"
+                        className="px-3.5 py-1.5 text-xs font-bold bg-[#008952] text-white rounded-lg shadow-xs cursor-pointer"
+                      >
+                        Simpan Staf
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              )}
+
+              {/* List of Registered Staff */}
+              <div className="space-y-1.5">
+                {staffList.map((st) => (
+                  <div
+                    key={st.id}
+                    className="p-2.5 rounded-2xl bg-slate-50/70 border border-slate-200/70 flex items-center justify-between gap-2"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-8 h-8 rounded-xl bg-slate-200 text-slate-700 font-black text-xs flex items-center justify-center shrink-0">
+                        {st.name.slice(0, 2).toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <span className="font-bold text-xs text-slate-900 block truncate">{st.name}</span>
+                        <span className="text-[10px] text-slate-500 font-mono block truncate">{st.email}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-[9.5px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        {st.role}
+                      </span>
+                      {st.role !== 'Owner' && (
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteStaff(st.id)}
+                          className="w-6 h-6 rounded-lg hover:bg-rose-100 text-slate-400 hover:text-rose-600 flex items-center justify-center transition-colors cursor-pointer"
+                          title="Hapus Staf"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

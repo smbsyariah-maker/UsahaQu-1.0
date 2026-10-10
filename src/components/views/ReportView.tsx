@@ -18,9 +18,14 @@ import {
   CreditCard, 
   Wallet,
   Receipt,
-  FileText
+  FileText,
+  Handshake,
+  Store,
+  Share2,
+  Printer
 } from 'lucide-react';
-import { Transaction, Mechanic, ServiceQueue, ExpenseItem } from '../../types';
+import { Transaction, Mechanic, ServiceQueue, ExpenseItem, ConsignmentSupplier, ConsignmentProduct } from '../../types';
+import { INITIAL_CONSIGNMENT_SUPPLIERS, INITIAL_CONSIGNMENT_PRODUCTS } from '../../data/mockData';
 
 interface ReportViewProps {
   initialTab?: string;
@@ -29,6 +34,9 @@ interface ReportViewProps {
   queues: ServiceQueue[];
   expenses: ExpenseItem[];
   onBack: () => void;
+  consignmentSuppliers?: ConsignmentSupplier[];
+  consignmentProducts?: ConsignmentProduct[];
+  onNavigateToCollabQu?: () => void;
 }
 
 export const ReportView: React.FC<ReportViewProps> = ({
@@ -37,12 +45,16 @@ export const ReportView: React.FC<ReportViewProps> = ({
   mechanics,
   queues,
   expenses,
-  onBack
+  onBack,
+  consignmentSuppliers = INITIAL_CONSIGNMENT_SUPPLIERS,
+  consignmentProducts = INITIAL_CONSIGNMENT_PRODUCTS,
+  onNavigateToCollabQu
 }) => {
   const [activeTab, setActiveTab] = useState<string>(() => {
     if (initialTab === 'omset-harian' || initialTab === 'revenue') return 'laporan-pendapatan';
     if (initialTab === 'kinerja-mekanik' || initialTab === 'mechanics') return 'laporan-servis';
     if (initialTab === 'laba-sparepart' || initialTab === 'margin') return 'laporan-piutang-keuangan';
+    if (initialTab === 'laporan-konsinyasi' || initialTab === 'consignment' || initialTab === 'collabqu' || initialTab === 'rep-consignment') return 'laporan-konsinyasi';
     return initialTab || 'laporan-pendapatan';
   });
 
@@ -54,6 +66,7 @@ export const ReportView: React.FC<ReportViewProps> = ({
       if (initialTab === 'omset-harian' || initialTab === 'revenue') setActiveTab('laporan-pendapatan');
       else if (initialTab === 'kinerja-mekanik' || initialTab === 'mechanics') setActiveTab('laporan-servis');
       else if (initialTab === 'laba-sparepart' || initialTab === 'margin') setActiveTab('laporan-piutang-keuangan');
+      else if (initialTab === 'laporan-konsinyasi' || initialTab === 'consignment' || initialTab === 'collabqu' || initialTab === 'rep-consignment') setActiveTab('laporan-konsinyasi');
       else setActiveTab(initialTab);
     }
   }, [initialTab]);
@@ -80,6 +93,11 @@ export const ReportView: React.FC<ReportViewProps> = ({
         return {
           title: 'Laporan Piutang & Keuangan',
           subtitle: 'Rincian Tagihan Belum Lunas & Kas Keluar Operasional'
+        };
+      case 'laporan-konsinyasi':
+        return {
+          title: 'Laporan Konsinyasi (Titip Jual)',
+          subtitle: 'Statistik & Bagi Hasil Titipan Terpisah dari Omset Sendiri'
         };
       default:
         return {
@@ -160,6 +178,42 @@ export const ReportView: React.FC<ReportViewProps> = ({
               <span>{todayStr}</span>
             </div>
           </div>
+        </div>
+
+        {/* Horizontal Tab Bar */}
+        <div className="flex items-center gap-1.5 mt-2 bg-emerald-800/50 p-1 rounded-xl text-xs overflow-x-auto scrollbar-none">
+          <button
+            onClick={() => setActiveTab('laporan-pendapatan')}
+            className={`flex-1 min-w-[90px] py-1.5 px-2 rounded-lg font-bold transition-all text-center cursor-pointer whitespace-nowrap ${
+              activeTab === 'laporan-pendapatan' ? 'bg-white text-[#008952] shadow-xs' : 'text-emerald-100'
+            }`}
+          >
+            Pendapatan
+          </button>
+          <button
+            onClick={() => setActiveTab('laporan-servis')}
+            className={`flex-1 min-w-[70px] py-1.5 px-2 rounded-lg font-bold transition-all text-center cursor-pointer whitespace-nowrap ${
+              activeTab === 'laporan-servis' ? 'bg-white text-[#008952] shadow-xs' : 'text-emerald-100'
+            }`}
+          >
+            Servis
+          </button>
+          <button
+            onClick={() => setActiveTab('laporan-piutang-keuangan')}
+            className={`flex-1 min-w-[70px] py-1.5 px-2 rounded-lg font-bold transition-all text-center cursor-pointer whitespace-nowrap ${
+              activeTab === 'laporan-piutang-keuangan' ? 'bg-white text-[#008952] shadow-xs' : 'text-emerald-100'
+            }`}
+          >
+            Piutang
+          </button>
+          <button
+            onClick={() => setActiveTab('laporan-konsinyasi')}
+            className={`flex-1 min-w-[130px] py-1.5 px-2 rounded-lg font-bold transition-all text-center cursor-pointer whitespace-nowrap ${
+              activeTab === 'laporan-konsinyasi' ? 'bg-white text-[#7c3aed] shadow-xs' : 'text-emerald-100'
+            }`}
+          >
+            Titip Jual (CollabQu)
+          </button>
         </div>
       </div>
 
@@ -567,6 +621,141 @@ export const ReportView: React.FC<ReportViewProps> = ({
               </div>
             </div>
 
+          </div>
+        )}
+
+        {/* =====================================================================
+            SUB-MENU D: LAPORAN KONSINYASI (TITIP JUAL - DANA TERPISAH)
+        ===================================================================== */}
+        {activeTab === 'laporan-konsinyasi' && (
+          <div className="space-y-4 animate-in fade-in">
+            {/* Header Card Ringkasan Terpisah dari Omset Sendiri */}
+            <div className="bg-gradient-to-br from-[#7c3aed] to-[#4338ca] text-white rounded-3xl p-5 sm:p-6 shadow-xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-purple-400/30">
+                <div className="flex items-center gap-2">
+                  <Handshake className="w-5 h-5 text-purple-200" />
+                  <div>
+                    <h3 className="font-extrabold text-sm sm:text-base text-white">
+                      Dana Konsinyasi & Bagi Hasil (CollabQu)
+                    </h3>
+                    <p className="text-[11px] text-purple-200">
+                      Omset barang titipan dipisahkan secara independen dari omset toko utama
+                    </p>
+                  </div>
+                </div>
+
+                {onNavigateToCollabQu && (
+                  <button
+                    onClick={onNavigateToCollabQu}
+                    className="self-start sm:self-auto bg-white/20 hover:bg-white/30 text-white font-bold text-xs px-3 py-1.5 rounded-xl border border-white/20 flex items-center gap-1 cursor-pointer transition-all active:scale-95"
+                  >
+                    <span>Buka Modul CollabQu →</span>
+                  </button>
+                )}
+              </div>
+
+              {/* 3 Metric Inflow Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="bg-white/10 rounded-2xl p-3.5 backdrop-blur-xs">
+                  <span className="text-[10px] text-purple-200 font-semibold uppercase tracking-wider block">
+                    Total Penjualan Titipan
+                  </span>
+                  <span className="text-xl font-black text-white font-mono block mt-1">
+                    Rp {consignmentProducts.reduce((acc, p) => acc + (p.soldStock * p.consumerPrice), 0).toLocaleString('id-ID')}
+                  </span>
+                  <span className="text-[10px] text-purple-200 mt-1 block">
+                    {consignmentProducts.reduce((acc, p) => acc + p.soldStock, 0)} unit terjual
+                  </span>
+                </div>
+
+                <div className="bg-white/10 rounded-2xl p-3.5 backdrop-blur-xs">
+                  <span className="text-[10px] text-amber-200 font-semibold uppercase tracking-wider block">
+                    Hak Bersih Pemasok (Wajib Disetor)
+                  </span>
+                  <span className="text-xl font-black text-amber-300 font-mono block mt-1">
+                    Rp {consignmentProducts.reduce((acc, p) => acc + (p.soldStock * p.supplierNetPrice), 0).toLocaleString('id-ID')}
+                  </span>
+                  <span className="text-[10px] text-amber-200/80 mt-1 block">
+                    Hutang konsinyasi ke penitip
+                  </span>
+                </div>
+
+                <div className="bg-white/10 rounded-2xl p-3.5 backdrop-blur-xs">
+                  <span className="text-[10px] text-emerald-200 font-semibold uppercase tracking-wider block">
+                    Komisi Bersih Toko (Profit)
+                  </span>
+                  <span className="text-xl font-black text-emerald-300 font-mono block mt-1">
+                    Rp {(
+                      consignmentProducts.reduce((acc, p) => acc + (p.soldStock * p.consumerPrice), 0) -
+                      consignmentProducts.reduce((acc, p) => acc + (p.soldStock * p.supplierNetPrice), 0)
+                    ).toLocaleString('id-ID')}
+                  </span>
+                  <span className="text-[10px] text-emerald-200/80 mt-1 block">
+                    Keuntungan tanpa modal beli
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Rincian per Mitra Penitip */}
+            <div className="bg-white rounded-3xl p-5 shadow-xs border border-slate-200/80 space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                <span className="font-bold text-xs text-slate-800">
+                  Rincian Penjualan & Hak Bagi Hasil per Mitra:
+                </span>
+                <span className="text-[11px] text-slate-400 font-medium">
+                  {consignmentSuppliers.length} Mitra Terdaftar
+                </span>
+              </div>
+
+              <div className="divide-y divide-slate-100">
+                {consignmentSuppliers.map((supp) => {
+                  const sProducts = consignmentProducts.filter((p) => p.supplierId === supp.id);
+                  const gross = sProducts.reduce((acc, p) => acc + (p.soldStock * p.consumerPrice), 0);
+                  const netPayable = sProducts.reduce((acc, p) => acc + (p.soldStock * p.supplierNetPrice), 0);
+                  const fee = gross - netPayable;
+                  const soldCount = sProducts.reduce((acc, p) => acc + p.soldStock, 0);
+
+                  return (
+                    <div key={supp.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-xs text-slate-900">{supp.storeName}</span>
+                          <span className="text-[10px] text-purple-700 bg-purple-50 px-1.5 py-0.2 rounded font-bold">
+                            {sProducts.length} Produk
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 mt-0.5">
+                          Kontak: {supp.ownerName} • {supp.phone}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <div className="text-left sm:text-right">
+                          <span className="text-xs font-black text-slate-900 block font-mono">
+                            Setor: Rp {netPayable.toLocaleString('id-ID')}
+                          </span>
+                          <span className="text-[10px] text-slate-400 block">
+                            {soldCount} unit • Komisi Rp {fee.toLocaleString('id-ID')}
+                          </span>
+                        </div>
+
+                        <button
+                          onClick={() => {
+                            const waText = `Halo ${supp.ownerName} (${supp.storeName}), rekap dana titip jual konsinyasi di Usaha Qu:\n- Unit terjual: ${soldCount} unit\n- Omset kotor: Rp ${gross.toLocaleString('id-ID')}\n- Komisi toko: Rp ${fee.toLocaleString('id-ID')}\n- Hak bersih Anda: Rp ${netPayable.toLocaleString('id-ID')}\nTerima kasih.`;
+                            window.open(`https://wa.me/${supp.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(waText)}`, '_blank');
+                          }}
+                          className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded-lg border border-emerald-200 flex items-center gap-1 shrink-0 cursor-pointer"
+                        >
+                          <Share2 className="w-2.5 h-2.5" />
+                          <span>WA</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         )}
 

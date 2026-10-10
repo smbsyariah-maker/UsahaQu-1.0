@@ -23,9 +23,11 @@ import {
   UtensilsCrossed,
   ScanBarcode,
   Layers,
-  AlertCircle
+  AlertCircle,
+  Globe
 } from 'lucide-react';
-import { MarketingCampaign, PromoVoucher, CustomerVehicle, BusinessType } from '../../types';
+import { MarketingCampaign, PromoVoucher, CustomerVehicle, BusinessType, SubscriptionState, WorkshopProfile } from '../../types';
+import { EtalaseOnlineView } from './EtalaseOnlineView';
 
 interface MarketingViewProps {
   initialTab?: string;
@@ -37,10 +39,13 @@ interface MarketingViewProps {
   onAddVoucher: (newVoucher: PromoVoucher) => void;
   onToggleVoucherActive: (id: string) => void;
   businessType?: BusinessType;
+  subscription?: SubscriptionState;
+  profile?: WorkshopProfile;
+  onOpenSubscriptionModal?: () => void;
 }
 
 export const MarketingView: React.FC<MarketingViewProps> = ({
-  initialTab = 'broadcast-wa',
+  initialTab = 'etalase-online',
   customers,
   campaigns,
   vouchers,
@@ -48,12 +53,16 @@ export const MarketingView: React.FC<MarketingViewProps> = ({
   onSendCampaign,
   onAddVoucher,
   onToggleVoucherActive,
-  businessType = 'bengkel'
+  businessType = 'bengkel',
+  subscription,
+  profile,
+  onOpenSubscriptionModal
 }) => {
   const [activeTab, setActiveTab] = useState<string>(() => {
+    if (initialTab === 'etalase-online' || initialTab === 'mkt-etalase') return 'etalase-online';
     if (initialTab === 'voucher-diskon' || initialTab === 'voucher') return 'promo-diskon';
     if (initialTab === 'ulasan-google' || initialTab === 'reviews') return 'riwayat-pesan';
-    return initialTab || 'broadcast-wa';
+    return initialTab || 'etalase-online';
   });
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -390,6 +399,18 @@ export const MarketingView: React.FC<MarketingViewProps> = ({
       <div className="bg-white border-b border-slate-200 px-4 py-2 sticky top-[48px] z-10">
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar max-w-4xl mx-auto">
           <button
+            onClick={() => setActiveTab('etalase-online')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
+              activeTab === 'etalase-online'
+                ? 'bg-[#008952] text-white shadow-xs'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+          >
+            <Globe className="w-3.5 h-3.5" />
+            <span>Etalase Web & WA</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab('broadcast-wa')}
             className={`px-3 py-1.5 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'broadcast-wa'
@@ -429,6 +450,18 @@ export const MarketingView: React.FC<MarketingViewProps> = ({
 
       {/* Main Content Container */}
       <div className="p-4 space-y-4 max-w-4xl mx-auto w-full pb-20">
+        {/* =====================================================================
+            SUB-MENU ETALASE ONLINE & PESANAN WHATSAPP
+        ===================================================================== */}
+        {activeTab === 'etalase-online' && (
+          <EtalaseOnlineView
+            onBack={onBack}
+            businessType={businessType}
+            subscription={subscription}
+            profile={profile}
+            onOpenSubscriptionModal={onOpenSubscriptionModal}
+          />
+        )}
 
         {/* =====================================================================
             SUB-MENU A: BROADCAST WHATSAPP (DENGAN PARTISI ISOLASI KATEGORI USAHA)
