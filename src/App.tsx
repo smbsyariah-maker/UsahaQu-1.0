@@ -497,7 +497,12 @@ export default function App() {
       title: 'Collab Qu',
       subtitle: 'Titip Jual & Konsinyasi',
       iconName: 'Handshake',
-      description: 'Manajemen konsinyasi mandiri'
+      description: 'Manajemen konsinyasi mandiri',
+      subMenus: [
+        { id: 'collab-toko', title: 'Data Toko Penitip', subtitle: 'Penitip / Pemasok', iconName: 'Store', targetView: 'collabqu' },
+        { id: 'collab-stok', title: 'Stok Konsinyasi', subtitle: 'Barang Titip Jual', iconName: 'Package', targetView: 'collabqu' },
+        { id: 'collab-laporan', title: 'Laporan Konsinyasi', subtitle: 'Bagi Hasil & Retur', iconName: 'FileText', targetView: 'collabqu' }
+      ]
     });
     setSelectedSubMenu({
       id: initialTab === 'stok' ? 'collab-stok' : initialTab === 'laporan' ? 'collab-laporan' : 'collab-toko',
