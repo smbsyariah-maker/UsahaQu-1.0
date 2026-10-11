@@ -39,20 +39,15 @@ jobs:
         with:
           packages: 'platforms;android-35 build-tools;35.0.0'
 
-      - name: 5. Prepare environment and consistent keystore
+      - name: 5. Prepare environment and debug keystore
         run: |
           if [ ! -f .env ]; then
             cp .env.example .env 2>/dev/null || touch .env
           fi
 
           mkdir -p ~/.android
-          # Gunakan keystore konsisten agar update APK tidak perlu hapus aplikasi lama
-          if [ -f "android/app/debug.keystore" ]; then
-            echo "[INFO] Menggunakan keystore persisten dari android/app/debug.keystore..."
-            cp android/app/debug.keystore ~/.android/debug.keystore
-          elif [ ! -f ~/.android/debug.keystore ]; then
-            echo "[INFO] Membuat keystore debug baru..."
-            keytool -genkeypair -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Bengkel Qu,O=Usaha Qu,C=ID"
+          if [ ! -f ~/.android/debug.keystore ]; then
+            keytool -genkeypair -v -keystore ~/.android/debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
           fi
 
       - name: 6. Install Dependencies & Build Web App
@@ -69,7 +64,7 @@ jobs:
 
           npx cap sync android
 
-          if [ -f ~/.android/debug.keystore ] && [ ! -f "android/app/debug.keystore" ]; then
+          if [ -d "android/app" ]; then
             cp ~/.android/debug.keystore android/app/debug.keystore 2>/dev/null || true
           fi
 
@@ -81,9 +76,6 @@ jobs:
 
       - name: 8. Build APK with Gradle
         timeout-minutes: 15
-        env:
-          BUILD_NUMBER: ${{ github.run_number }}
-          VERSION_NAME: '1.60'
         run: |
           cd android
           chmod +x ./gradlew

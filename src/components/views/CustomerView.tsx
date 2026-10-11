@@ -65,9 +65,7 @@ export const CustomerView: React.FC<CustomerViewProps> = ({
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Form state for adding new customer with Scoped Data
-  const [newCustScope, setNewCustScope] = useState<'bengkel' | 'resto' | 'ritel'>(
-    businessType === 'collabqu' ? 'ritel' : businessType
-  );
+  const [newCustScope, setNewCustScope] = useState<'bengkel' | 'resto' | 'ritel'>(businessType);
   const [newCustName, setNewCustName] = useState('');
   const [newCustPhone, setNewCustPhone] = useState('');
   const [newCustAddress, setNewCustAddress] = useState('');

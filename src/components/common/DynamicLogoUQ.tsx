@@ -1,5 +1,5 @@
 import React from 'react';
-import { Wrench, Cog, UtensilsCrossed, ChefHat, Store, ScanBarcode, Handshake, ShoppingBag } from 'lucide-react';
+import { Wrench, Cog, UtensilsCrossed, ChefHat, Store, ScanBarcode } from 'lucide-react';
 import { BusinessType } from '../../types';
 
 interface DynamicLogoUQProps {
@@ -62,17 +62,6 @@ export const DynamicLogoUQ: React.FC<DynamicLogoUQProps> = ({
       label: 'Kasir Cepat & Barcode',
       MainIcon: Store,
       SubIcon: ScanBarcode
-    },
-    collabqu: {
-      gradient: 'from-[#7c3aed] via-[#6366f1] to-[#312e81]',
-      border: 'border-purple-300/30',
-      shadow: 'shadow-[0_8px_20px_rgba(124,58,237,0.28)]',
-      glow: 'bg-purple-400/25',
-      badgeBg: 'bg-purple-950/70 text-purple-200 border-purple-500/30',
-      subtitle: 'Collab Qu',
-      label: 'Titip Jual & Konsinyasi',
-      MainIcon: Handshake,
-      SubIcon: ShoppingBag
     }
   }[businessType] || {
     gradient: 'from-[#008952] to-[#006039]',

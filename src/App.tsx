@@ -23,10 +23,7 @@ import {
   INITIAL_VOUCHERS,
   INITIAL_DINING_TABLES,
   INITIAL_FOOD_MENUS,
-  INITIAL_RETAIL_PRODUCTS,
-  COLLABQU_MODULES,
-  INITIAL_CONSIGNMENT_SUPPLIERS,
-  INITIAL_CONSIGNMENT_PRODUCTS
+  INITIAL_RETAIL_PRODUCTS
 } from './data/mockData';
 import { 
   MenuModuleConfig, 
@@ -53,9 +50,7 @@ import {
   BusinessType,
   DiningTable,
   FoodMenuItem,
-  RetailProduct,
-  ConsignmentSupplier,
-  ConsignmentProduct
+  RetailProduct
 } from './types';
 import { 
   getOrCreateDeviceId, 
@@ -89,8 +84,6 @@ import { SubscriptionModal } from './components/modals/SubscriptionModal';
 import { PluginSwitcherModal } from './components/common/PluginSwitcherModal';
 import { CustomNavbarModal, DEFAULT_MANAGER_TABS } from './components/modals/CustomNavbarModal';
 import { EtalaseOnlineView } from './components/views/EtalaseOnlineView';
-import { CollabQuView } from './components/views/CollabQuView';
-import { ThemeId, getActiveTheme, APP_THEMES } from './utils/themeManager';
 
 export default function App() {
   // Modular Plugin Architecture State (active_business_type: "bengkel" | "resto" | "ritel")
@@ -122,28 +115,6 @@ export default function App() {
   const [retailProducts, setRetailProducts] = useState<RetailProduct[]>(() => {
     const saved = localStorage.getItem('usahaqu_retail_products');
     return saved ? JSON.parse(saved) : INITIAL_RETAIL_PRODUCTS;
-  });
-
-  // CollabQu (Titip Jual / Konsinyasi) State
-  const [consignmentSuppliers, setConsignmentSuppliers] = useState<ConsignmentSupplier[]>(() => {
-    try {
-      const saved = localStorage.getItem('uq_consignment_suppliers');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
-    return INITIAL_CONSIGNMENT_SUPPLIERS;
-  });
-
-  const [consignmentProducts, setConsignmentProducts] = useState<ConsignmentProduct[]>(() => {
-    try {
-      const saved = localStorage.getItem('uq_consignment_products');
-      if (saved) return JSON.parse(saved);
-    } catch (e) {}
-    return INITIAL_CONSIGNMENT_PRODUCTS;
-  });
-
-  // 6 Variasi Tema Tampilan State
-  const [activeTheme, setActiveTheme] = useState<ThemeId>(() => {
-    return (localStorage.getItem('uq_theme') as ThemeId) || (localStorage.getItem('bq_theme') as ThemeId) || 'emerald';
   });
 
   const [isPluginSwitcherOpen, setIsPluginSwitcherOpen] = useState(false);
@@ -456,71 +427,12 @@ export default function App() {
     localStorage.setItem('usahaqu_retail_products', JSON.stringify(retailProducts));
   }, [retailProducts]);
 
-  useEffect(() => {
-    localStorage.setItem('uq_consignment_suppliers', JSON.stringify(consignmentSuppliers));
-  }, [consignmentSuppliers]);
-
-  useEffect(() => {
-    localStorage.setItem('uq_consignment_products', JSON.stringify(consignmentProducts));
-  }, [consignmentProducts]);
-
-  useEffect(() => {
-    localStorage.setItem('uq_theme', activeTheme);
-  }, [activeTheme]);
-
-  const handleAddConsignmentSupplier = (newSup: Omit<ConsignmentSupplier, 'id'>) => {
-    const fullSup: ConsignmentSupplier = {
-      ...newSup,
-      id: `supp-${Date.now()}`
-    };
-    setConsignmentSuppliers(prev => [fullSup, ...prev]);
-  };
-
-  const handleAddConsignmentProduct = (newProd: Omit<ConsignmentProduct, 'id'>) => {
-    const fullProd: ConsignmentProduct = {
-      ...newProd,
-      id: `cprod-${Date.now()}`
-    };
-    setConsignmentProducts(prev => [fullProd, ...prev]);
-  };
-
-  const handleApplyTheme = (themeId: ThemeId) => {
-    setActiveTheme(themeId);
-    localStorage.setItem('uq_theme', themeId);
-    localStorage.setItem('bq_theme', themeId);
-  };
-
-  const handleOpenCollabQu = (initialTab: 'toko' | 'stok' | 'laporan' = 'toko') => {
-    setCurrentScreen('feature');
-    setSelectedModule({
-      id: 'collabqu',
-      title: 'Collab Qu',
-      subtitle: 'Titip Jual & Konsinyasi',
-      iconName: 'Handshake',
-      description: 'Manajemen konsinyasi mandiri',
-      subMenus: [
-        { id: 'collab-toko', title: 'Data Toko Penitip', subtitle: 'Penitip / Pemasok', iconName: 'Store', targetView: 'collabqu' },
-        { id: 'collab-stok', title: 'Stok Konsinyasi', subtitle: 'Barang Titip Jual', iconName: 'Package', targetView: 'collabqu' },
-        { id: 'collab-laporan', title: 'Laporan Konsinyasi', subtitle: 'Bagi Hasil & Retur', iconName: 'FileText', targetView: 'collabqu' }
-      ]
-    });
-    setSelectedSubMenu({
-      id: initialTab === 'stok' ? 'collab-stok' : initialTab === 'laporan' ? 'collab-laporan' : 'collab-toko',
-      title: initialTab === 'stok' ? 'Stok Konsinyasi' : initialTab === 'laporan' ? 'Laporan Konsinyasi' : 'Data Toko Penitip',
-      subtitle: 'Modul Titip Jual',
-      iconName: 'Handshake',
-      targetView: 'collabqu'
-    });
-  };
-
   // Active Modules based on Business Type
   const activeModules: MenuModuleConfig[] = 
     businessType === 'resto' 
       ? RESTO_MODULES 
       : businessType === 'ritel' 
       ? RITEL_MODULES 
-      : businessType === 'collabqu'
-      ? COLLABQU_MODULES
       : MENU_MODULES;
 
   const handleSwitchBusinessType = (type: BusinessType) => {

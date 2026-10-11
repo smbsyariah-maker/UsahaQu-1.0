@@ -70,7 +70,7 @@ export const MarketingView: React.FC<MarketingViewProps> = ({
 
   // Business Scope Filter for Marketing Broadcast (Bengkel / Resto / Ritel / Semua)
   const [targetScope, setTargetScope] = useState<'bengkel' | 'resto' | 'ritel' | 'semua'>(
-    businessType === 'collabqu' ? 'ritel' : (businessType || 'bengkel')
+    businessType || 'bengkel'
   );
 
   // Sub-Menu A Form State (Broadcast WhatsApp)
@@ -102,10 +102,8 @@ export const MarketingView: React.FC<MarketingViewProps> = ({
   // Synchronize target scope if active businessType changes
   useEffect(() => {
     if (businessType) {
-      const mappedScope: 'bengkel' | 'resto' | 'ritel' | 'semua' = 
-        businessType === 'collabqu' ? 'ritel' : businessType;
-      setTargetScope(mappedScope);
-      applyDefaultTemplate(mappedScope);
+      setTargetScope(businessType);
+      applyDefaultTemplate(businessType);
     }
   }, [businessType]);
 

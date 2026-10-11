@@ -324,7 +324,7 @@ export interface DevicePairingToken {
 // ==========================================
 // MODULAR PLUGIN ARCHITECTURE (USAHA QU 1.0)
 // ==========================================
-export type BusinessType = 'bengkel' | 'resto' | 'ritel' | 'collabqu';
+export type BusinessType = 'bengkel' | 'resto' | 'ritel';
 
 export interface BusinessTypeMeta {
   id: BusinessType;
@@ -382,58 +382,6 @@ export interface RetailProduct {
   sellPrice: number;
   unit: string; // e.g. "Pcs", "Kg", "Dus", "Btl"
   brand: string;
-}
-
-// ==========================================
-// COLLABQU (KONSINYASI & TITIP JUAL) MODELS
-// ==========================================
-export interface ConsignmentSupplier {
-  id: string;
-  storeName: string; // Nama Toko / Merk Penitip
-  ownerName: string; // Nama Pemilik / Kontak PIC
-  phone: string; // WhatsApp
-  address: string;
-  mapsUrl?: string; // Link Pin Google Maps
-  joinedDate: string;
-  status: 'Aktif' | 'Nonaktif';
-  totalSoldUnits: number;
-  totalSoldRevenue: number;
-  totalReturnedUnits: number;
-  totalRestockedUnits: number;
-  activeItemCount: number;
-}
-
-export type ConsignmentStockStatus = 'Tersedia' | 'Stok Menipis' | 'Batas Retur' | 'Habis';
-
-export interface ConsignmentProduct {
-  id: string;
-  supplierId: string;
-  supplierName: string;
-  productName: string;
-  sku: string; // Barcode / SKU
-  consumerPrice: number; // Harga Jual ke Konsumen
-  supplierNetPrice: number; // Harga Netto Pemasok / Tagihan Penitip
-  commissionRatePercent: number; // % Komisi Toko
-  initialStock: number;
-  currentStock: number;
-  soldStock: number;
-  returnedStock: number;
-  dueDate?: string; // Batas Tanggal Retur / Penagihan (Opsional)
-  status: ConsignmentStockStatus;
-  category?: string;
-  notes?: string;
-}
-
-export interface ConsignmentSettlement {
-  id: string;
-  supplierId: string;
-  supplierName: string;
-  date: string;
-  totalSoldUnits: number;
-  grossSales: number;
-  netSupplierPayable: number;
-  storeCommissionRevenue: number;
-  status: 'Lunas' | 'Menunggu Transfer';
 }
 
 
